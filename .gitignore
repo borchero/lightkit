@@ -1,0 +1,7 @@
+# Caches
+__pycache__/
+lightning_logs/
+
+# Dependencies
+.venv/
+node_modules/

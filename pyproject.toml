@@ -1,0 +1,62 @@
+[tool.poetry]
+authors = ["Oliver Borchert <me@borchero.com>"]
+description = ""
+license = "MIT"
+name = "lightkit"
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+numpy = "^1.20.0"
+python = ">=3.8,<3.10"
+pytorch-lightning = "^1.5.0"
+torch = "^1.8.0"
+
+[tool.poetry.dev-dependencies]
+black = "^21.12b0"
+isort = "^5.10.1"
+pylint = "^2.12.2"
+pytest = "^6.2.5"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+
+[tool.pylint.messages_control]
+disable = [
+  "arguments-differ",
+  "duplicate-code",
+  "missing-module-docstring",
+  "invalid-name",
+  "no-self-use",
+  "too-few-public-methods",
+  "too-many-ancestors",
+  "too-many-arguments",
+  "too-many-branches",
+  "too-many-locals",
+  "too-many-instance-attributes",
+]
+
+[tool.pylint.typecheck]
+generated-members = [
+  "torch.*",
+]
+
+[tool.pyright]
+reportIncompatibleMethodOverride = false
+reportPrivateImportUsage = false
+reportUnknownArgumentType = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+typeCheckingMode = "strict"
+
+[tool.black]
+line-length = 99
+
+[tool.isort]
+force_alphabetical_sort_within_sections = true
+include_trailing_comma = true
+known_first_party = "lightkit"
+line_length = 99
+lines_between_sections = 0
+profile = "black"
+skip_gitignore = true
