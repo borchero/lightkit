@@ -4,7 +4,7 @@ import json
 from abc import ABC
 from os import PathLike
 from pathlib import Path
-from typing import Generic, get_args, get_origin, Type, Union
+from typing import Any, Generic, get_args, get_origin, Type, Union
 import torch
 from torch import jit
 from ._protocols import C, ConfigurableModule, M
@@ -65,10 +65,16 @@ class Configurable(Generic[C], ABC):
                 return get_args(base)[0]
         raise ValueError(f"`{cls.__name__}` does not inherit from `Configurable`")
 
-    def __init__(self, config: C):
+    def __init__(self, config: C, *args: Any, **kwargs: Any):
+        """
+        Args:
+            config: The configuration of the architecture.
+            args: Positional arguments that ought to be passed to the superclass.
+            kwargs: Keyword arguments that ought to be passed to the superclass.
+        """
         assert dataclasses.is_dataclass(config), "Configuration is not a dataclass."
 
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.config = config
 
     @jit.unused

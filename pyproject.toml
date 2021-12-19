@@ -1,9 +1,16 @@
 [tool.poetry]
 authors = ["Oliver Borchert <me@borchero.com>"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 description = ""
+documentation = "https://lightkit.borchero.com"
 license = "MIT"
 name = "lightkit"
-version = "0.1.0"
+readme = "README.md"
+repository = "https://github.com/borchero/lightkit"
+version = "0.0.0"
 
 [tool.poetry.dependencies]
 numpy = "^1.20.0"
@@ -60,3 +67,8 @@ line_length = 99
 lines_between_sections = 0
 profile = "black"
 skip_gitignore = true
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  'ignore:.*Create unlinked descriptors is going to go away.*:DeprecationWarning',
+]
