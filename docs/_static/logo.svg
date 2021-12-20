@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="42px" height="23px" viewBox="0 0 42 23" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Group</title>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group">
+            <rect id="Rectangle" fill="#FFFFFF" x="0" y="0" width="42" height="23"></rect>
+            <text id="LightKit" font-family="AvenirNext-DemiBold, Avenir Next" font-size="10" font-weight="500" fill="#005493">
+                <tspan x="3" y="15">LightKit</tspan>
+            </text>
+        </g>
+    </g>
+</svg>

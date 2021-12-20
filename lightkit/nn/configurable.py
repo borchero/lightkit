@@ -1,7 +1,6 @@
 from __future__ import annotations
 import dataclasses
 import json
-from abc import ABC
 from os import PathLike
 from pathlib import Path
 from typing import Any, Generic, get_args, get_origin, Type, Union
@@ -12,7 +11,7 @@ from ._protocols import C, ConfigurableModule, M
 _PathType = Union[str, PathLike[str]]
 
 
-class Configurable(Generic[C], ABC):
+class Configurable(Generic[C]):
     """
     A mixin for any PyTorch module to extend it with storage capabilites. By passing a single
     configuration object to the initializer, this mixin allows the module to be extended with

@@ -4,7 +4,7 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-description = ""
+description = "Utilities for PyTorch and PyTorch Lightning."
 documentation = "https://lightkit.borchero.com"
 license = "MIT"
 name = "lightkit"
@@ -23,6 +23,13 @@ black = "^21.12b0"
 isort = "^5.10.1"
 pylint = "^2.12.2"
 pytest = "^6.2.5"
+Sphinx = "^4.3.2"
+pydata-sphinx-theme = "^0.7.2"
+scanpydoc = "^0.7.3"
+sphinx-autodoc-typehints = "^1.12.0"
+sphinx-automodapi = "^0.13"
+sphinx-copybutton = "^0.4.0"
+sphinxcontrib-spelling = "^7.3.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

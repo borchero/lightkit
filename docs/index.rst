@@ -1,4 +1,5 @@
-# LightKit
+LightKit
+========
 
 LightKit provides simple utilities for working with PyTorch and PyTorch Lightning. At the moment,
 it provides three simple features:
@@ -10,18 +11,30 @@ it provides three simple features:
 - A typed base class for estimators that enables users to easily create estimators with PyTorch and
   PyTorch Lightning which are fully compatible with Scikit-learn.
 
-For more details, consult the [documentation](https://lightkit.borchero.com).
+Installation
+------------
 
-## Installation
+LightKit is available via ``pip``:
 
-LightKit is available via `pip`:
+.. code-block:: python
 
-```bash
-pip install lightkit
-```
+    pip install lightkit
 
-If you are using [Poetry](https://python-poetry.org/):
+If you are using `Poetry <https://python-poetry.org/>`_:
 
-```bash
-poetry add lightkit
-```
+.. code-block:: python
+
+    poetry add lightkit
+
+Reference
+---------
+
+.. toctree::
+   :maxdepth: 2
+
+   sites/api
+
+Index
+^^^^^
+
+- :ref:`genindex`

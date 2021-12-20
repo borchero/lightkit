@@ -33,10 +33,10 @@ def data_loader_from_tensor_data(
         A data loader providing the items from the passed tensors.
 
     Attention:
-        The returned data loader is *not* an instance of :class:`DataLoader`, but an instance of
-        :class:`TensorDataLoader`. However, it provides many of the same features and can be used
-        in almost all places where PyTorch's native data loader is used. Thus, we cast the type for
-        the user's convenience.
+        The returned data loader is *not* an instance of :class:`~torch.utils.data.DataLoader`, but
+        an instance of :class:`TensorDataLoader`. However, it provides many of the same features
+        and can be used in almost all places where PyTorch's native data loader is used. Thus, we
+        cast the type for the user's convenience.
     """
     assert len(data) > 0, "At least one tensor must be provided."
     assert (

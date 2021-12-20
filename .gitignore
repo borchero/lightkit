@@ -1,6 +1,8 @@
 # Caches
 __pycache__/
 lightning_logs/
+build/
+docs/sites/generated
 
 # Dependencies
 .venv/

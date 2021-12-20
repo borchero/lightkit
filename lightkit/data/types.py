@@ -28,7 +28,7 @@ DataLoader = Union[
     Sequence[TensorDataLoader[T]],
 ]
 DataLoader.__doc__ = """
-Generic type annotation for functions accepting a data loader of some sort for training or
-evaluation. Consider using this annotation for the implementation of methods in an estimator
-derived from :class:`lightkit.BaseEstimator`.
+Generic type annotation for functions accepting any data loader as input. Consider using this
+annotation for the implementation of methods in an estimator derived from
+:class:`lightkit.BaseEstimator`.
 """
