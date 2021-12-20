@@ -1,0 +1,28 @@
+name: Deploy Package
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Publish
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.9-buster
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Poetry
+        run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | \
+          python - \
+          && echo "PATH=$HOME/.poetry/bin:$PATH" >> $GITHUB_ENV
+      - name: Tag
+        run: poetry version ${{ github.event.release.tag_name }}
+      - name: Build Wheel
+        run: poetry build
+      - name: Publish to PyPi
+        run: poetry publish --username $PYPI_USERNAME --password $PYPI_PASSWORD
+        env:
+          PYPI_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
