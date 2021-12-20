@@ -1,9 +1,16 @@
+import sys
 from os import PathLike
-from typing import Generic, OrderedDict, Protocol, Type, TypeVar
+from typing import Generic, OrderedDict, Protocol, Type, TypeVar, Union
 import torch
 
 C = TypeVar("C")
 M = TypeVar("M", bound="ConfigurableModule")  # type: ignore
+
+if sys.version_info < (3, 9, 0):
+    # PathLike is not generic for Python 3.9
+    PathType = Union[str, PathLike]
+else:
+    PathType = Union[str, PathLike[str]]
 
 
 class ConfigurableModule(Protocol, Generic[C]):  # pylint: disable=missing-class-docstring
@@ -13,7 +20,7 @@ class ConfigurableModule(Protocol, Generic[C]):  # pylint: disable=missing-class
         ...
 
     @classmethod
-    def load(cls: Type[M], path: PathLike[str]) -> M:
+    def load(cls: Type[M], path: PathType) -> M:
         ...
 
     @classmethod
@@ -24,7 +31,7 @@ class ConfigurableModule(Protocol, Generic[C]):  # pylint: disable=missing-class
     def config(self) -> C:
         ...
 
-    def save(self, path: PathLike[str], compile_model: bool = False) -> None:
+    def save(self, path: PathType, compile_model: bool = False) -> None:
         ...
 
     def state_dict(self) -> OrderedDict[str, torch.Tensor]:

@@ -1,14 +1,11 @@
 from __future__ import annotations
 import dataclasses
 import json
-from os import PathLike
 from pathlib import Path
-from typing import Any, Generic, get_args, get_origin, Type, Union
+from typing import Any, Generic, get_args, get_origin, Type
 import torch
 from torch import jit
-from ._protocols import C, ConfigurableModule, M
-
-_PathType = Union[str, PathLike[str]]
+from ._protocols import C, ConfigurableModule, M, PathType
 
 
 class Configurable(Generic[C]):
@@ -21,7 +18,7 @@ class Configurable(Generic[C]):
     """
 
     @classmethod
-    def load(cls: Type[M], path: _PathType) -> M:
+    def load(cls: Type[M], path: PathType) -> M:
         """
         Loads the module's configurations and parameters from files in the specified directory at
         first. Then, it initializes the model with the stored configurations and loads the
@@ -77,7 +74,7 @@ class Configurable(Generic[C]):
         self.config = config
 
     @jit.unused
-    def save(self: ConfigurableModule[C], path: _PathType, compile_model: bool = False) -> None:
+    def save(self: ConfigurableModule[C], path: PathType, compile_model: bool = False) -> None:
         """
         Saves the module's configuration and parameters to files in the specified directory. It
         creates two files, namely ``config.json`` and ``parameters.pt`` which contain the
