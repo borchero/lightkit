@@ -1,3 +1,6 @@
+# MacOS
+.DS_Store
+
 # Caches
 __pycache__/
 lightning_logs/
