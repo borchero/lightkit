@@ -10,7 +10,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     container:
-      image: python:3.8-buster
+      image: python:3.9-buster
     steps:
       - name: Checkout
         uses: actions/checkout@v2
