@@ -1,13 +1,10 @@
 from typing import Callable, Generic, Iterator, Optional, Tuple, TypeVar
 import torch
 from ._protocols import BatchSampler
+from .collation import collate_tuple
 from .sampler import TensorBatchSampler
 
 T = TypeVar("T")
-
-
-def _default_collate_fn(*x: torch.Tensor) -> Tuple[torch.Tensor, ...]:
-    return x
 
 
 class TensorDataLoader(Generic[T]):
@@ -33,7 +30,7 @@ class TensorDataLoader(Generic[T]):
         shuffle: bool = False,
         drop_last: bool = False,
         batch_sampler: Optional[BatchSampler] = None,
-        collate_fn: Callable[..., T] = _default_collate_fn,
+        collate_fn: Callable[..., T] = collate_tuple,
     ):
         """
         Args:

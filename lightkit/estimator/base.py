@@ -6,12 +6,14 @@ from abc import ABC
 from pathlib import Path
 from typing import Any, Dict, Generic, get_args, get_origin, Optional, Type, TypeVar
 import pytorch_lightning as pl
+from lightkit.data.types import DataLoader
 from lightkit.nn._protocols import ConfigurableModule
 from ._trainer import LightkitTrainer
 from .exception import NotFittedError
 
 M = TypeVar("M", bound=ConfigurableModule)  # type: ignore
 E = TypeVar("E", bound="BaseEstimator")  # type: ignore
+T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
@@ -228,6 +230,30 @@ class BaseEstimator(Generic[M], ABC):
     # ---------------------------------------------------------------------------------------------
     # PRIVATE
 
+    def _num_batches_per_epoch(self, loader: DataLoader[T]) -> int:
+        """
+        Returns the number of batches that are run for the given data loader across all processes
+        when using the trainer provided by the :meth:`trainer` method. If ``n`` processes run
+        ``k`` batches each, this method returns ``k * n``.
+        """
+        trainer = self.trainer()
+        num_batches = len(loader)  # type: ignore
+        kwargs = trainer.distributed_sampler_kwargs
+        if kwargs is None:
+            return num_batches
+        return num_batches * kwargs.get("num_replicas", 1)
+
+    @property
+    def _is_fitted(self) -> bool:
+        try:
+            getattr(self, "model_")
+            return True
+        except NotFittedError:
+            return False
+
+    # ---------------------------------------------------------------------------------------------
+    # GENERICS
+
     @classmethod
     def _get_model_class(cls: Type[E]) -> Type[M]:
         return cls._get_generic_type(0)
@@ -244,11 +270,3 @@ class BaseEstimator(Generic[M], ABC):
                     )
                 return get_args(base)[index]
         raise ValueError(f"`{cls.__name__}` does not inherit from `Estimator`")
-
-    @property
-    def _is_fitted(self) -> bool:
-        try:
-            getattr(self, "model_")
-            return True
-        except NotFittedError:
-            return False

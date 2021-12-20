@@ -1,3 +1,4 @@
+from .collation import collate_tensor, collate_tuple
 from .factory import data_loader_from_tensor_data
 from .loader import TensorDataLoader
 from .sampler import TensorBatchSampler
@@ -8,5 +9,7 @@ __all__ = [
     "TensorBatchSampler",
     "TensorData",
     "TensorDataLoader",
+    "collate_tensor",
+    "collate_tuple",
     "data_loader_from_tensor_data",
 ]

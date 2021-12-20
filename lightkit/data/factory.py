@@ -2,7 +2,8 @@ from typing import Callable, cast, Optional, TypeVar, Union
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-from .loader import _default_collate_fn, TensorDataLoader  # type: ignore
+from .collation import collate_tuple
+from .loader import TensorDataLoader
 from .types import TensorData
 
 T = TypeVar("T")
@@ -13,7 +14,7 @@ def data_loader_from_tensor_data(
     batch_size: Optional[int] = None,
     shuffle: bool = False,
     drop_last: bool = False,
-    collate_fn: Callable[..., T] = _default_collate_fn,
+    collate_fn: Callable[..., T] = collate_tuple,
 ) -> DataLoader[T]:
     """
     Returns a data loader for tabular data.

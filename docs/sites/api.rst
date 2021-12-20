@@ -25,13 +25,6 @@ Estimator
     TransformerMixin
     PredictorMixin
 
-.. rubric:: Functions
-.. autosummary::
-    :toctree: generated/estimator
-    :nosignatures:
-
-    trainer_uses_batch_training
-
 
 Modules
 -------
@@ -68,6 +61,8 @@ Data Handling
     :nosignatures:
 
     data_loader_from_tensor_data
+    collate_tuple
+    collate_tensor
 
 .. rubric:: Type Aliases
 .. autosummary::
