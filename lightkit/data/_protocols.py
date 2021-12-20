@@ -12,6 +12,10 @@ class BatchSampler(Protocol):
     def batch_size(self) -> int:
         ...
 
+    @property
+    def drop_last(self) -> bool:
+        ...
+
     def __len__(self) -> int:
         ...
 

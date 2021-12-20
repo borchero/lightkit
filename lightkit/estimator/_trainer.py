@@ -32,6 +32,7 @@ class LightkitTrainer(pl.Trainer):
             sampler = sampler_cls(
                 num_items=result.tensors[0].size(0),
                 batch_size=result.batch_sampler.batch_size,
+                drop_last=result.batch_sampler.drop_last,
                 num_replicas=kwargs["num_replicas"],
                 rank=kwargs["rank"],
             )

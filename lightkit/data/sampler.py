@@ -1,6 +1,7 @@
 import math
 from typing import Iterator, List, Union
 import torch
+from pytorch_lightning.overrides.distributed import IndexBatchSamplerWrapper
 from torch.utils.data import Sampler
 
 
@@ -146,7 +147,14 @@ class UnrepeatedDistributedTensorBatchSampler(Sampler[slice]):
         provide a trainer that automatically uses this sampler if required.
     """
 
-    def __init__(self, num_items: int, batch_size: int, num_replicas: int, rank: int):
+    def __init__(
+        self,
+        num_items: int,
+        batch_size: int,
+        num_replicas: int,
+        rank: int,
+        drop_last: bool = False,
+    ):
         """
         Args:
             num_items: The number of items to sample from.
@@ -154,6 +162,8 @@ class UnrepeatedDistributedTensorBatchSampler(Sampler[slice]):
             num_replicas: The total number of processes for which the sampler is used (i.e. the
                 world size).
             rank: The rank of the process for which this sampler is providing items.
+            drop_last: If set to ``True``, batches that do not provide ``batch_size`` elements are
+                discarded.
         """
         super().__init__(None)
 
@@ -162,10 +172,13 @@ class UnrepeatedDistributedTensorBatchSampler(Sampler[slice]):
         self.batch_size = batch_size
         self.num_replicas = num_replicas
         self.rank = rank
+        self.drop_last = drop_last
 
     def __len__(self) -> int:
         # This only applies to rank 0, but that is fine for displaying a progress bar
-        return math.ceil(math.ceil(self.dataset_size / self.num_replicas) / self.batch_size)
+        if self.drop_last:
+            return self.dataset_size // (self.num_replicas * self.batch_size)
+        return math.ceil(self.dataset_size / (self.num_replicas * self.batch_size))
 
     def __iter__(self) -> Iterator[slice]:
         chunk_sizes = [
@@ -176,13 +189,15 @@ class UnrepeatedDistributedTensorBatchSampler(Sampler[slice]):
         local_size = chunk_sizes[self.rank]
 
         for i in range(math.ceil(local_size / self.batch_size)):
-            yield slice(
-                prev_size + i * self.batch_size,
-                min(prev_size + (i + 1) * self.batch_size, prev_size + local_size),
-            )
+            lower = prev_size + i * self.batch_size
+            upper = min(prev_size + (i + 1) * self.batch_size, prev_size + local_size)
+            if self.drop_last and upper < prev_size + (i + 1) * self.batch_size:
+                break
+            yield slice(lower, upper)
 
 
-class IndexTensorBatchSamplerWrapper:
+# We only subclass to hook into PyTorch Lightning...
+class IndexTensorBatchSamplerWrapper(IndexBatchSamplerWrapper):
     """
     Wrapper around a sampler providing batches as tensors (or slices) and tracking the indices.
     """
@@ -195,6 +210,7 @@ class IndexTensorBatchSamplerWrapper:
             UnrepeatedDistributedTensorBatchSampler,
         ],
     ):
+        super().__init__(None)  # type: ignore
         self.batch_sampler = batch_sampler
         self.seen_batch_indices: List[List[int]] = []
 
@@ -204,6 +220,13 @@ class IndexTensorBatchSamplerWrapper:
         Returns the batch size of the underlying sampler.
         """
         return self.batch_sampler.batch_size
+
+    @property
+    def drop_last(self) -> bool:
+        """
+        Returns whether the underlying sampler drops the last incomplete batch.
+        """
+        return self.batch_sampler.drop_last
 
     def __len__(self) -> int:
         return len(self.batch_sampler)
