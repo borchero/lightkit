@@ -189,7 +189,7 @@ class BaseEstimator(Generic[M], ABC):
         Returns the estimator's parameters as passed to the initializer.
 
         Args:
-            deep: Ignored. For sklearn compatibility.
+            deep: Ignored. For Scikit-learn compatibility.
 
         Returns:
             The mapping from init parameters to values.

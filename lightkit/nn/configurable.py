@@ -10,7 +10,7 @@ from ._protocols import C, ConfigurableModule, M, PathType
 
 class Configurable(Generic[C]):
     """
-    A mixin for any PyTorch module to extend it with storage capabilites. By passing a single
+    A mixin for any PyTorch module to extend it with storage capabilities. By passing a single
     configuration object to the initializer, this mixin allows the module to be extended with
     :meth:`save` and :meth:`load` methods. These methods allow to to (1) save the model along with
     its configuration (i.e. architecture) and (2) to load the model without instantiating an
