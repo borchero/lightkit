@@ -1,4 +1,4 @@
-from typing import Callable, Generic, Iterator, Optional, Tuple, TypeVar
+from typing import Callable, Generic, Iterator, Optional, TypeVar
 import torch
 from ._protocols import BatchSampler
 from .collation import collate_tuple
