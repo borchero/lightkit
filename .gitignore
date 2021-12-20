@@ -1,6 +1,9 @@
 # MacOS
 .DS_Store
 
+# Local Configuration
+.python-version
+
 # Caches
 __pycache__/
 lightning_logs/
