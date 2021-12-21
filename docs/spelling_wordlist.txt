@@ -1,9 +1,11 @@
 boolean
 Checkpointing
+dataloader
 dataset
 datasets
 init
 initializer
+iterable
 Mixin
 mixin
 Scikit
