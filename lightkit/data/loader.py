@@ -42,6 +42,9 @@ class DataLoader(TorchDataLoader[T_co]):
                 batch_size=kwargs.get("batch_size", 1),
                 drop_last=kwargs.get("drop_last", False),
             )
+            kwargs.pop("batch_size", None)
+            kwargs.pop("shuffle", None)
+            kwargs.pop("drop_last", None)
             kwargs.setdefault("collate_fn", collate_tuple)
 
         super().__init__(dataset, **kwargs)  # type: ignore
