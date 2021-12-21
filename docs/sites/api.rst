@@ -51,18 +51,13 @@ Data Handling
     :toctree: generated/data
     :nosignatures:
     :caption: Data Handling
+    :template: classes/no_method.rst
 
     DataLoader
+
+    :template: autosummary/class.rst
+
     RangeBatchSampler
-
-.. rubric:: Functions
-.. autosummary::
-    :toctree: generated/data
-    :nosignatures:
-
-    dataset_from_tensors
-    collate_tuple
-    collate_tensor
 
 .. rubric:: Type Aliases
 .. autosummary::
@@ -72,3 +67,13 @@ Data Handling
 
     TensorLike
     DataLoaderLike
+
+
+.. rubric:: Functions
+.. autosummary::
+    :toctree: generated/data
+    :nosignatures:
+
+    dataset_from_tensors
+    collate_tuple
+    collate_tensor

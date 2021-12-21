@@ -16,6 +16,7 @@ class DataLoader(TorchDataLoader[T_co]):
 
     Note:
         Retrieving contiguous indices is only possible when all of the following conditions apply:
+
         - ``shuffle=False`` or ``batch_sampler`` is of type
           :class:`~lightkit.data.RangeBatchSampler`
         - ``sampler is None``
