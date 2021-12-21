@@ -1,15 +1,13 @@
 from .collation import collate_tensor, collate_tuple
-from .factory import data_loader_from_tensor_data
-from .loader import TensorDataLoader
-from .sampler import TensorBatchSampler
-from .types import DataLoader, TensorData
+from .loader import DataLoader
+from .sampler import RangeBatchSampler
+from .types import DataLoaderLike, TensorLike
 
 __all__ = [
     "DataLoader",
-    "TensorBatchSampler",
-    "TensorData",
-    "TensorDataLoader",
+    "DataLoaderLike",
+    "RangeBatchSampler",
+    "TensorLike",
     "collate_tensor",
     "collate_tuple",
-    "data_loader_from_tensor_data",
 ]

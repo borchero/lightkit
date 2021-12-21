@@ -1,71 +1,57 @@
-from typing import Callable, Generic, Iterator, Optional, TypeVar
-import torch
-from ._protocols import BatchSampler
+from typing import Any, Iterator, TypeVar
+from torch.utils.data import DataLoader as TorchDataLoader
+from torch.utils.data import Dataset, TensorDataset
 from .collation import collate_tuple
-from .sampler import TensorBatchSampler
+from .sampler import RangeBatchSampler
 
-T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
 
 
-class TensorDataLoader(Generic[T]):
+class DataLoader(TorchDataLoader[T_co]):
     """
-    Fast data loader for tabular data represented as tensors. This data loader drastically
-    improves performance compared to PyTorch's built-in data loader by directly cutting batches
-    from the data instead of getting individual items and stacking them.
+    Extension for PyTorch's builtin dataloader. This implementation allows to retrieve contiguous
+    indices from a :class:`~torch.utils.data.TensorDataset` orders of magnitude faster. The
+    data loader, thus, enables to implement traditional machine learning methods that exhibit a
+    speed similar to the implementations found in Scikit-learn.
 
     Note:
-        This data loader does not provide options for multiprocessing since cutting from tensors is
-        faster than sending tensors over queues.
-
-    Attention:
-        If you are using this data loader in a multi-process environment, you may need to
-        explicitly pass a sampler. See :class:`~lightkit.data.DistributedTensorBatchSampler` and
-        :class:`~lightkit.data.UnrepeatedDistributedTensorBatchSampler`
+        Retrieving contiguous indices is only possible when all of the following conditions apply:
+        - ``shuffle=False`` or ``batch_sampler`` is of type
+          :class:`~lightkit.data.RangeBatchSampler`
+        - ``sampler is None``
+        - ``num_workers=0``
+        - ``dataset`` is not iterable
     """
 
-    def __init__(
-        self,
-        *tensors: torch.Tensor,
-        batch_size: Optional[int] = None,
-        shuffle: bool = False,
-        drop_last: bool = False,
-        batch_sampler: Optional[BatchSampler] = None,
-        collate_fn: Callable[..., T] = collate_tuple,
-    ):
+    def __init__(self, dataset: Dataset[T_co], **kwargs: Any):
         """
         Args:
-            tensors: One or more tensors of shape ``[num_datapoints, *]``. For each index, this
-                dataset returns all tensors' values at that index as tuples.
-            batch_size: The batch size to use. Ignored if ``batch_sampler`` is provided. If set to
-                ``None``, each batch returns the full data.
-            shuffle: Whether to shuffle indices that are sampled. Ignored if ``batch_sampler`` is
-                provided.
-            drop_last: Whether to ignore the last batch if the dataset is not divisible by the
-                batch size. Ignored if ``batch_sampler`` is provided.
-            batch_sampler: A batch sampler which provides either slices or batches of indices to
-                gather from the dataset. By default, it initializes a
-                :class:`~lightkit.data.TensorBatchSampler`.
-            collate_fn: A collation function which transforms a batch of items. It receives the
-                batches of each individual tensor as individual parameters.
+            dataset: The dataset from which to load the data.
+            kwargs: Keyword arguments passed to :meth:`torch.utils.data.DataLoader.__init__`.
         """
-        assert len(tensors) > 0, "At least one tensor must be provided."
-        assert all(
-            t.size(0) == tensors[0].size(0) for t in tensors
-        ), "All tensors must provide the same number of items."
+        if (
+            not kwargs.get("shuffle", False)
+            and "sampler" not in kwargs
+            and "batch_sampler" not in kwargs
+            and kwargs.get("num_workers", 0) == 0
+            and isinstance(dataset, TensorDataset)
+        ):
+            kwargs["batch_sampler"] = RangeBatchSampler(
+                len(dataset),
+                batch_size=kwargs.get("batch_size", 1),
+                drop_last=kwargs.get("drop_last", False),
+            )
+            kwargs.setdefault("collate_fn", collate_tuple)
 
-        self.tensors = tensors
-        self.batch_sampler = batch_sampler or TensorBatchSampler(
-            self.tensors[0].size(0),
-            batch_size or self.tensors[0].size(0),
-            shuffle=shuffle,
-            drop_last=drop_last,
-        )
-        self.collate_fn = collate_fn
+        super().__init__(dataset, **kwargs)  # type: ignore
 
-    def __len__(self) -> int:
-        return len(self.batch_sampler)  # type: ignore
+    def __iter__(self) -> Iterator[Any]:  # pylint: disable=inconsistent-return-statements
+        if isinstance(self.dataset, TensorDataset) and self.num_workers == 0:
+            return super().__iter__()
 
-    def __iter__(self) -> Iterator[T]:
         for indices in self.batch_sampler:
-            item = tuple(tensor[indices] for tensor in self.tensors)
-            yield self.collate_fn(*item)
+            if isinstance(indices, range):
+                subscript = slice(indices.start, indices.stop)
+                yield self.collate_fn(tuple(t[subscript] for t in self.dataset.tensors))
+            else:
+                yield self.collate_fn(tuple(t[indices] for t in self.dataset.tensors))

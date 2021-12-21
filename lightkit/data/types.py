@@ -3,32 +3,46 @@ import numpy as np
 import numpy.typing as npt
 import torch
 from pytorch_lightning import LightningDataModule
-from torch.utils.data import DataLoader as TorchDataLoader
-from torch.utils.data import Dataset as TorchDataset
-from .loader import TensorDataLoader
+from torch.utils.data import DataLoader, TensorDataset
 
 T = TypeVar("T")
 
-TensorData = Union[
+TensorLike = Union[
     npt.NDArray[np.float32],
     torch.Tensor,
-    TorchDataset[torch.Tensor],
 ]
-TensorData.__doc__ = """
+TensorLike.__doc__ = """
 Type annotation for functions accepting any kind of tensor data as input. Consider using this
 annotation if your methods in an estimator derived from :class:`lightkit.BaseEstimator` work on
 tensors.
 """
 
-DataLoader = Union[
+DataLoaderLike = Union[
     LightningDataModule,
-    TorchDataLoader[T],
-    Sequence[TorchDataLoader[T]],
-    TensorDataLoader[T],
-    Sequence[TensorDataLoader[T]],
+    DataLoader[T],
+    Sequence[DataLoader[T]],
 ]
-DataLoader.__doc__ = """
+DataLoaderLike.__doc__ = """
 Generic type annotation for functions accepting any data loader as input. Consider using this
 annotation for the implementation of methods in an estimator derived from
 :class:`lightkit.BaseEstimator`.
 """
+
+
+def dataset_from_tensors(*data: TensorLike) -> TensorDataset:
+    """
+    Transforms a set of tensor-like items into a datasets.
+
+    Args:
+        data: The tensor-like items.
+
+    Returns:
+        The dataset.
+    """
+    return TensorDataset(*[_to_tensor(t) for t in data])
+
+
+def _to_tensor(data: TensorLike) -> torch.Tensor:
+    if isinstance(data, np.ndarray):
+        return torch.from_numpy(data)
+    return data

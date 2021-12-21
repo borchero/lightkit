@@ -6,9 +6,8 @@ from abc import ABC
 from pathlib import Path
 from typing import Any, Dict, Generic, get_args, get_origin, Optional, Type, TypeVar
 import pytorch_lightning as pl
-from lightkit.data.types import DataLoader
+from torch.utils.data import DataLoader
 from lightkit.nn._protocols import ConfigurableModule
-from ._trainer import LightkitTrainer
 from .exception import NotFittedError
 
 M = TypeVar("M", bound=ConfigurableModule)  # type: ignore
@@ -113,10 +112,10 @@ class BaseEstimator(Generic[M], ABC):
 
         Note:
             This function should be preferred over initializing the trainer directly. It ensures
-            that the returned trainer correctly deals with LightKit components such as the
-            :class:`~lightkit.data.TensorDataLoader`.
+            that the returned trainer correctly deals with LightKit components that may be
+            introduced in the future.
         """
-        return LightkitTrainer(**{**self.trainer_params, **kwargs})
+        return pl.Trainer(**{**self.trainer_params, **kwargs})
 
     # ---------------------------------------------------------------------------------------------
     # PERSISTENCE
@@ -230,7 +229,7 @@ class BaseEstimator(Generic[M], ABC):
     # ---------------------------------------------------------------------------------------------
     # PRIVATE
 
-    def _num_batches_per_epoch(self, loader: DataLoader[T]) -> int:
+    def _num_batches_per_epoch(self, loader: DataLoader[Any]) -> int:
         """
         Returns the number of batches that are run for the given data loader across all processes
         when using the trainer provided by the :meth:`trainer` method. If ``n`` processes run
