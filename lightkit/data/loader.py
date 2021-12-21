@@ -50,7 +50,7 @@ class DataLoader(TorchDataLoader[T_co]):
         super().__init__(dataset, **kwargs)  # type: ignore
 
     def __iter__(self) -> Iterator[Any]:  # pylint: disable=inconsistent-return-statements
-        if isinstance(self.dataset, TensorDataset) and self.num_workers == 0:
+        if not (isinstance(self.dataset, TensorDataset) and self.num_workers == 0):
             return super().__iter__()
 
         for indices in self.batch_sampler:
