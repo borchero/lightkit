@@ -52,15 +52,15 @@ Data Handling
     :nosignatures:
     :caption: Data Handling
 
-    TensorDataLoader
-    TensorBatchSampler
+    DataLoader
+    RangeBatchSampler
 
 .. rubric:: Functions
 .. autosummary::
     :toctree: generated/data
     :nosignatures:
 
-    data_loader_from_tensor_data
+    dataset_from_tensors
     collate_tuple
     collate_tensor
 
@@ -70,5 +70,5 @@ Data Handling
     :nosignatures:
     :template: classes/type_alias.rst
 
-    DataLoader
-    TensorData
+    TensorLike
+    DataLoaderLike
