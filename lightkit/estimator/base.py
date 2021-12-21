@@ -4,10 +4,11 @@ import logging
 import pickle
 from abc import ABC
 from pathlib import Path
-from typing import Any, Dict, Generic, get_args, get_origin, Optional, Type, TypeVar
+from typing import Any, Dict, Generic, Optional, Type, TypeVar
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from lightkit.nn._protocols import ConfigurableModule
+from lightkit.utils import get_generic_type
 from .exception import NotFittedError
 
 M = TypeVar("M", bound=ConfigurableModule)  # type: ignore
@@ -176,8 +177,8 @@ class BaseEstimator(Generic[M], ABC):
             estimator.set_params(pickle.load(f))  # type: ignore
 
         if (path / "config.json").exists():
-            model_cls = cls._get_model_class()
-            model = model_cls.load(path)
+            model_cls = get_generic_type(cls, BaseEstimator)
+            model = model_cls.load(path)  # type: ignore
             estimator.load_model(model)
 
         return estimator
@@ -249,23 +250,3 @@ class BaseEstimator(Generic[M], ABC):
             return True
         except NotFittedError:
             return False
-
-    # ---------------------------------------------------------------------------------------------
-    # GENERICS
-
-    @classmethod
-    def _get_model_class(cls: Type[E]) -> Type[M]:
-        return cls._get_generic_type(0)
-
-    @classmethod
-    def _get_generic_type(cls: Type[E], index: int) -> Any:
-        for base in cls.__orig_bases__:  # type: ignore
-            if get_origin(base) == BaseEstimator:
-                args = get_args(base)
-                if not args:
-                    raise ValueError(
-                        f"`{cls.__name__} does not provide at least {index+1} generic parameters"
-                        " for `Estimator`"
-                    )
-                return get_args(base)[index]
-        raise ValueError(f"`{cls.__name__}` does not inherit from `Estimator`")

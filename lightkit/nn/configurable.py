@@ -2,9 +2,10 @@ from __future__ import annotations
 import dataclasses
 import json
 from pathlib import Path
-from typing import Any, Generic, get_args, get_origin, Type
+from typing import Any, Generic, Type
 import torch
 from torch import jit
+from lightkit.utils import get_generic_type
 from ._protocols import C, ConfigurableModule, M, PathType
 
 
@@ -38,7 +39,7 @@ class Configurable(Generic[C]):
         path = Path(path)
         assert path.is_dir(), "Modules can only be loaded from a directory."
 
-        config_cls = cls._get_config_class()  # type: ignore
+        config_cls = get_generic_type(cls, Configurable)
         with (path / "config.json").open("r") as f:
             config = config_cls(**json.load(f))
 
@@ -47,19 +48,6 @@ class Configurable(Generic[C]):
             state_dict = torch.load(f)
         model.load_state_dict(state_dict)  # pylint: disable=no-member
         return model
-
-    @classmethod
-    def _get_config_class(cls: Type[M]) -> Type[C]:
-        # pylint: disable=no-member
-        for base in cls.__orig_bases__:  # type: ignore
-            if get_origin(base) == Configurable:
-                args = get_args(base)
-                if not args:
-                    raise ValueError(
-                        f"`{cls.__name__} does not provide a generic parameter for `Configurable`"
-                    )
-                return get_args(base)[0]
-        raise ValueError(f"`{cls.__name__}` does not inherit from `Configurable`")
 
     def __init__(self, config: C, *args: Any, **kwargs: Any):
         """
