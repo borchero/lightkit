@@ -1,6 +1,7 @@
 import math
 from typing import Iterator
 from torch.utils.data import Sampler
+from torch.utils.data.sampler import SequentialSampler
 
 
 class RangeBatchSampler(Sampler[range]):
@@ -9,16 +10,21 @@ class RangeBatchSampler(Sampler[range]):
     :class:`lightkit.data.DataLoader` to provide significant speedups for tensor datasets.
     """
 
-    def __init__(self, num_items: int, batch_size: int, drop_last: bool = False):
+    def __init__(self, sampler: Sampler[int], batch_size: int, drop_last: bool = False):
         """
         Args:
-            num_items: The number of items to sample from.
+            sampler: The sampler providing indices. Must be a sequential sampler. Note that the
+                only purpose of this sampler is to determine its length.
             batch_size: The number of items to sample for each batch.
             drop_last: Whether to drop the last batch if ``num_items`` is not divisible by
                 ``batch_size``.
         """
+        assert isinstance(
+            sampler, SequentialSampler
+        ), f"{self.__class__.__name__} only works with sequential samplers."
+
         super().__init__(None)
-        self.dataset_size = num_items
+        self.dataset_size = len(sampler)
         self.batch_size = batch_size
         self.drop_last = drop_last
 

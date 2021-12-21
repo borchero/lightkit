@@ -1,6 +1,7 @@
 from typing import Any, Iterator, TypeVar
 from torch.utils.data import DataLoader as TorchDataLoader
 from torch.utils.data import Dataset, TensorDataset
+from torch.utils.data.sampler import SequentialSampler
 from .collation import collate_tuple
 from .sampler import RangeBatchSampler
 
@@ -38,7 +39,7 @@ class DataLoader(TorchDataLoader[T_co]):
             and isinstance(dataset, TensorDataset)
         ):
             kwargs["batch_sampler"] = RangeBatchSampler(
-                len(dataset),
+                SequentialSampler(dataset),
                 batch_size=kwargs.get("batch_size", 1),
                 drop_last=kwargs.get("drop_last", False),
             )
