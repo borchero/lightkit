@@ -3,7 +3,7 @@ from os import PathLike
 from typing import Generic, OrderedDict, Protocol, Type, TypeVar, Union
 import torch
 
-C = TypeVar("C")
+C = TypeVar("C", covariant=True)
 M = TypeVar("M", bound="ConfigurableModule")  # type: ignore
 
 if sys.version_info < (3, 9, 0):
@@ -16,15 +16,8 @@ else:
 class ConfigurableModule(Protocol, Generic[C]):  # pylint: disable=missing-class-docstring
     # pylint: disable=missing-function-docstring
 
-    def __init__(self, config: C):  # pylint: disable=super-init-not-called
-        ...
-
     @classmethod
     def load(cls: Type[M], path: PathType) -> M:
-        ...
-
-    @classmethod
-    def _get_config_class(cls: Type[M]) -> Type[C]:
         ...
 
     @property
