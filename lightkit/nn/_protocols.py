@@ -1,7 +1,9 @@
+# pylint: disable=missing-class-docstring,missing-function-docstring
 import sys
 from os import PathLike
-from typing import Generic, OrderedDict, Protocol, Type, TypeVar, Union
+from typing import Generic, Iterator, OrderedDict, Protocol, Tuple, Type, TypeVar, Union
 import torch
+from torch import nn
 
 C = TypeVar("C", covariant=True)
 M = TypeVar("M", bound="ConfigurableModule")  # type: ignore
@@ -13,22 +15,28 @@ else:
     PathType = Union[str, PathLike[str]]
 
 
-class ConfigurableModule(Protocol, Generic[C]):  # pylint: disable=missing-class-docstring
-    # pylint: disable=missing-function-docstring
-
+class AnyConfigurableModule(Protocol):
     @classmethod
     def load(cls: Type[M], path: PathType) -> M:
         ...
 
-    @property
-    def config(self) -> C:
+    def save(self, path: PathType, compile_model: bool = False) -> None:
         ...
 
-    def save(self, path: PathType, compile_model: bool = False) -> None:
+    def save_config(self, path: PathType) -> None:
+        ...
+
+    def named_children(self) -> Iterator[Tuple[str, nn.Module]]:
         ...
 
     def state_dict(self) -> OrderedDict[str, torch.Tensor]:
         ...
 
     def load_state_dict(self, state_dict: OrderedDict[str, torch.Tensor]) -> None:
+        ...
+
+
+class ConfigurableModule(AnyConfigurableModule, Protocol, Generic[C]):
+    @property
+    def config(self) -> C:
         ...
