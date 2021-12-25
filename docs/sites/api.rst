@@ -13,6 +13,7 @@ Estimator
     :caption: Estimator
 
     BaseEstimator
+    ConfigurableBaseEstimator
 
 .. currentmodule:: lightkit.estimator
 
