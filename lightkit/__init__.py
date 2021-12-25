@@ -1,5 +1,5 @@
 import logging
-from .estimator import BaseEstimator
+from .estimator import BaseEstimator, ConfigurableBaseEstimator
 
 # This is taken from PyTorch Lightning and ensures that logging for this package is enabled
 _root_logger = logging.getLogger()
@@ -20,4 +20,4 @@ def set_logging_level(level: int) -> None:
     _logger.setLevel(level)
 
 
-__all__ = ["BaseEstimator"]
+__all__ = ["BaseEstimator", "ConfigurableBaseEstimator"]
