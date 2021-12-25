@@ -1,9 +1,11 @@
 boolean
 Checkpointing
+config
 dataloader
 dataset
 datasets
 init
+initializable
 initializer
 iterable
 Mixin
