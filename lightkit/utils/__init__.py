@@ -1,3 +1,4 @@
 from .generics import get_generic_type
+from .path import PathType
 
-__all__ = ["get_generic_type"]
+__all__ = ["PathType", "get_generic_type"]

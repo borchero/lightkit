@@ -1,24 +1,25 @@
 from __future__ import annotations
+import copy
 import inspect
+import json
 import logging
 import pickle
+import warnings
 from abc import ABC
 from pathlib import Path
-from typing import Any, Dict, Generic, Optional, Type, TypeVar
+from typing import Any, Dict, List, Optional, Type, TypeVar
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
-from lightkit.nn._protocols import ConfigurableModule
-from lightkit.utils import get_generic_type
+from lightkit.utils.path import PathType
 from .exception import NotFittedError
 
-M = TypeVar("M", bound=ConfigurableModule)  # type: ignore
 E = TypeVar("E", bound="BaseEstimator")  # type: ignore
 T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
 
-class BaseEstimator(Generic[M], ABC):
+class BaseEstimator(ABC):
     """
     Base estimator class that all estimators should inherit from. This base estimator does not
     enforce the implementation of any methods, but users should follow the Scikit-learn guide on
@@ -51,13 +52,10 @@ class BaseEstimator(Generic[M], ABC):
       This ensures that :meth:`get_params` and :meth:`set_params` work as expected. Parameters that
       are passed to the trainer *must* be named ``trainer_params`` and should not be manually
       assigned to an attribute (this is handled by the base estimator).
-    - Fitted attributes must have a single trailing underscore (e.g. ``model_``). They should be
-      defined as annotations and carry a description. The trailing underscore ensures that access
-      to these attributes results in a useful error message.
+    - Fitted attributes must (1) have a single trailing underscore (e.g. ``model_``) and (2) be
+      defined as annotations. This ensures that :meth:`save` and :meth:`load` properly manage the
+      estimator's persistence.
     """
-
-    # This is both a private and public property to properly generate documentation.
-    _model: M
 
     def __init__(
         self,
@@ -92,13 +90,6 @@ class BaseEstimator(Generic[M], ABC):
             **(overwrite_params or {}),
         }
 
-    @property
-    def model_(self) -> M:
-        """
-        The fitted PyTorch module containing all estimated parameters.
-        """
-        return self._model
-
     def trainer(self, **kwargs: Any) -> pl.Trainer:
         """
         Returns the trainer as configured by the estimator. Typically, this method is only called
@@ -121,18 +112,15 @@ class BaseEstimator(Generic[M], ABC):
     # ---------------------------------------------------------------------------------------------
     # PERSISTENCE
 
-    def load_model(self, model: M) -> None:
+    @property
+    def persistent_attributes(self) -> List[str]:
         """
-        Loads the provided model that has been fitted previously by this estimator or manually
-        without the use of the estimator.
-
-        Args:
-            model: The model to load. In case, this estimator is already fitted, this model
-                overrides the existing fitted model.
+        Returns the list of fitted attributes that ought to be saved and loaded. By default, this
+        encompasses all annotations.
         """
-        self._model = model
+        return list(self.__annotations__.keys())
 
-    def save(self, path: Path) -> None:
+    def save(self, path: PathType) -> None:
         """
         Saves the estimator to the provided directory. It saves a file named ``estimator.pickle``
         for the configuration of the estimator and additional files for the fitted model (if
@@ -146,42 +134,143 @@ class BaseEstimator(Generic[M], ABC):
             This method may be called regardless of whether the estimator has already been fitted.
 
         Attention:
-            Use this method with care. It uses :mod:`pickle` to store the configuration options of
-            the estimator and is thus not necessarily backwards-compatible. Instead, consider
-            using :meth:`lighkit.nn.Configurable.save` on the fitted model accessible via
-            :attr:`model_`.
+            If the dictionary returned by :meth:`get_params` is not JSON-serializable, this method
+            uses :mod:`pickle` which is not necessarily backwards-compatible.
         """
+        path = Path(path)
         assert path.is_dir(), "Estimators can only be saved to a directory."
 
-        with (path / "estimator.pickle").open("wb+") as f:
-            pickle.dump(self.get_params(), f)
+        self.save_parameters(path)
+        try:
+            self.save_attributes(path)
+        except NotFittedError:
+            # In case attributes are not fitted, we just don't save them
+            pass
 
-        if self._is_fitted:
-            self.model_.save(path)
+    def save_parameters(self, path: Path) -> None:
+        """
+        Saves the parameters of this estimator. By default, it uses JSON and falls back to
+        :mod:`pickle`. It subclasses use non-primitive types as parameters, they should overwrite
+        this method.
+
+        Typically, this method should not be called directly. It is called as part of :meth:`save`.
+
+        Args:
+            path: The directory to which the parameters should be saved.
+        """
+        params = self.get_params()
+        try:
+            data = json.dumps(params)
+            with (path / "params.json").open("w+") as f:
+                f.write(data)
+        except TypeError:
+            warnings.warn(
+                f"Failed to serialize parameters of `{self.__class__.__name__}` to JSON. "
+                "Falling back to `pickle`."
+            )
+            with (path / "params.pickle").open("wb+") as f:
+                pickle.dump(params, f)
+
+    def save_attributes(self, path: Path) -> None:
+        """
+        Saves the fitted attributes of this estimator. By default, it uses JSON and falls back to
+        :mod:`pickle`. Subclasses should overwrite this method if non-primitive attributes are
+        fitted.
+
+        Typically, this method should not be called directly. It is called as part of :meth:`save`.
+
+        Args:
+            path: The directory to which the fitted attributed should be saved.
+
+        Raises:
+            NotFittedError: If the estimator has not been fitted.
+        """
+        if len(self.persistent_attributes) == 0:
+            return
+
+        attributes = {
+            attribute: getattr(self, attribute) for attribute in self.persistent_attributes
+        }
+        try:
+            data = json.dumps(attributes)
+            with (path / "attributes.json").open("w+") as f:
+                f.write(data)
+        except TypeError:
+            warnings.warn(
+                f"Failed to serialize fitted attributes of `{self.__class__.__name__}` to JSON. "
+                "Falling back to `pickle`."
+            )
+            with (path / "attributes.pickle").open("wb+") as f:
+                pickle.dump(attributes, f)
 
     @classmethod
-    def load(cls: Type[E], path: Path) -> E:
+    def load(cls: Type[E], path: PathType) -> E:
         """
-        Loads the estimator and (if available) the fitted model. See :meth:`save` for more
-        information about the required filenames for loading.
+        Loads the estimator and (if available) the fitted model. This method should only be
+        expected to work to load an estimator that has previously been saved via :meth:`save`.
 
         Args:
             path: The directory from which to load the estimator.
 
         Returns:
-            The loaded estimator, either fitted or not, depending on the availability of the
-            ``config.json`` file.
+            The loaded estimator, either fitted or not.
         """
-        estimator = cls()
-        with (path / "estimator.pickle").open("rb") as f:
-            estimator.set_params(pickle.load(f))  # type: ignore
+        path = Path(path)
+        assert path.is_dir(), "Estimators can only be loaded from a directory."
 
-        if (path / "config.json").exists():
-            model_cls = get_generic_type(cls, BaseEstimator)
-            model = model_cls.load(path)  # type: ignore
-            estimator.load_model(model)
+        estimator = cls.load_parameters(path)
+        try:
+            estimator.load_attributes(path)
+        except FileNotFoundError:
+            warnings.warn(f"Failed to read fitted attributes of `{cls.__name__}` at path '{path}'")
 
         return estimator
+
+    @classmethod
+    def load_parameters(cls: Type[E], path: Path) -> E:
+        """
+        Initializes this estimator by loading its parameters. If subclasses overwrite
+        :meth:`save_parameters`, this method should also be overwritten.
+
+        Typically, this method should not be called directly. It is called as part of :meth:`load`.
+
+        Args:
+            path: The directory from which the parameters should be loaded.
+        """
+        json_path = path / "params.json"
+        pickle_path = path / "params.pickle"
+
+        if json_path.exists():
+            with json_path.open() as f:
+                params = json.load(f)
+        else:
+            with pickle_path.open("rb") as f:
+                params = pickle.load(f)
+
+        return cls(**params)
+
+    def load_attributes(self, path: Path) -> None:
+        """
+        Loads the fitted attributes that are stored at the fitted path. If subclasses overwrite
+        :meth:`save_attributes`, this method should also be overwritten.
+
+        Typically, this method should not be called directly. It is called as part of :meth:`load`.
+
+        Args:
+            path: The directory from which the parameters should be loaded.
+
+        Raises:
+            FileNotFoundError: If the no fitted attributes have been stored.
+        """
+        json_path = path / "attributes.json"
+        pickle_path = path / "attributes.pickle"
+
+        if json_path.exists():
+            with json_path.open() as f:
+                self.set_params(json.load(f))
+        else:
+            with pickle_path.open("rb") as f:
+                self.set_params(pickle.load(f))
 
     # ---------------------------------------------------------------------------------------------
     # SKLEARN INTERFACE
@@ -215,13 +304,28 @@ class BaseEstimator(Generic[M], ABC):
             setattr(self, key, value)
         return self
 
+    def clone(self: E) -> E:
+        """
+        Clones the estimator without copying any fitted attributes. All parameters of this
+        estimator are copied via :meth:`copy.deepcopy`.
+
+        Returns:
+            The cloned estimator with the same parameters.
+        """
+        return self.__class__(
+            **{
+                name: param.clone() if isinstance(param, BaseEstimator) else copy.deepcopy(param)
+                for name, param in self.get_params().items()
+            }
+        )
+
     # ---------------------------------------------------------------------------------------------
     # SPECIAL METHODS
 
     def __getattr__(self, key: str) -> Any:
         if key in self.__dict__:
             return self.__dict__[key]
-        if key.endswith("_") and not key.endswith("__"):
+        if key.endswith("_") and not key.endswith("__") and key in self.__annotations__:
             raise NotFittedError(f"`{self.__class__.__name__}` has not been fitted yet")
         raise AttributeError(
             f"Attribute `{key}` does not exist on type `{self.__class__.__name__}`."
@@ -242,11 +346,3 @@ class BaseEstimator(Generic[M], ABC):
         if kwargs is None:
             return num_batches
         return num_batches * kwargs.get("num_replicas", 1)
-
-    @property
-    def _is_fitted(self) -> bool:
-        try:
-            getattr(self, "model_")
-            return True
-        except NotFittedError:
-            return False

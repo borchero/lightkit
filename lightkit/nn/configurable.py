@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Any, Dict, Generic, Type
 import torch
 from torch import jit, nn
-from lightkit.utils import get_generic_type
-from ._protocols import AnyConfigurableModule, C, ConfigurableModule, M, PathType
+from lightkit.utils import get_generic_type, PathType
+from ._protocols import C, ConfigurableModule, M
 
 
 class Configurable(Generic[C]):
@@ -16,15 +16,6 @@ class Configurable(Generic[C]):
     :meth:`save` and :meth:`load` methods. These methods allow to (1) save the model along with
     its configuration (i.e. architecture) and (2) to load the model without instantiating an
     instance of the class.
-
-    By default, a configurable module should only have a single parameter for its ``__init__``
-    method, i.e. the configuration. However, a configurable module may also have configurable
-    children. In that case, they must be passed via keyword after the configuration. To make sure
-    that :meth:`save` and :meth:`load` work as expected, the keyword must be the same as the name
-    of the child module.
-
-    Note:
-        At the moment, configurable children may not have configurable children themselves.
     """
 
     def __init__(self, config: C, *args: Any, **kwargs: Any):
@@ -83,11 +74,6 @@ class Configurable(Generic[C]):
         with (path / "parameters.pt").open("wb+") as f:
             torch.save(self.state_dict(), f)  # pylint: disable=no-member
 
-        # Store the configuration of all submodules which are also configurable
-        for name, module in self.named_children():  # pylint: disable=no-member
-            if isinstance(module, Configurable):
-                module.save_config(path / name)
-
         # Optionally store the compiled model
         if compile_model:
             compiled_model = jit.script(self)
@@ -121,7 +107,7 @@ class Configurable(Generic[C]):
         return cls(config)  # type: ignore
 
     @classmethod
-    def load(cls: Type[M], path: PathType, **children: Type[AnyConfigurableModule]) -> M:
+    def load(cls: Type[M], path: PathType) -> M:
         """
         Loads the module's configurations and parameters from files in the specified directory at
         first. Then, it initializes the model with the stored configurations and loads the
@@ -130,8 +116,6 @@ class Configurable(Generic[C]):
         Args:
             path: The directory which contains the ``config.json`` and ``parameters.pt`` files to
                 load.
-            children: Optional configurable modules that are children of this module. The
-                initialized modules are passed to the initializer using the provided names.
 
         Returns:
             The loaded model.
@@ -149,17 +133,28 @@ class Configurable(Generic[C]):
             config_args = json.load(f)
             config = _init_config(config_cls, config_args)
 
-        # Load children
-        loaded_children = {
-            name: configurable.load(path / name) for name, configurable in children.items()
-        }
-
         # Initialize model
-        model = cls(config, **loaded_children)  # type: ignore
+        model = cls(config)  # type: ignore
         with (path / "parameters.pt").open("rb") as f:
             state_dict = torch.load(f)
         model.load_state_dict(state_dict)  # pylint: disable=no-member
         return model
+
+    def clone(self: M, copy_parameters: bool = True) -> M:
+        """
+        Clones this module by initializing another module with the same configuration.
+
+        Args:
+            copy_parameters: Whether to copy this module's parameters or initialize the new module
+                with random parameters.
+
+        Returns:
+            The cloned module.
+        """
+        cloned = self.__class__(self.config)  # type: ignore
+        if copy_parameters:
+            cloned.load_state_dict(self.state_dict())  # pylint: disable=no-member
+        return cloned
 
 
 def _init_config(target: Type[Any], args: Dict[str, Any]) -> Any:
