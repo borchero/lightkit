@@ -2,7 +2,6 @@ from typing import Sequence, TypeVar, Union
 import numpy as np
 import numpy.typing as npt
 import torch
-from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, TensorDataset
 
 T = TypeVar("T")
@@ -18,7 +17,6 @@ tensors.
 """
 
 DataLoaderLike = Union[
-    LightningDataModule,
     DataLoader[T],
     Sequence[DataLoader[T]],
 ]
