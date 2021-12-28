@@ -49,10 +49,20 @@ class DataLoader(TorchDataLoader[T_co]):
             kwargs.setdefault("collate_fn", collate_tuple)
 
         super().__init__(dataset, **kwargs)  # type: ignore
+        self.custom_batching = self.num_workers == 0 and (
+            isinstance(self.batch_sampler, RangeBatchSampler)
+            or (
+                self.batch_sampler is not None
+                and hasattr(self.batch_sampler, "sampler")
+                and isinstance(self.batch_sampler.sampler, RangeBatchSampler)
+            )
+        )
 
     def __iter__(self) -> Iterator[Any]:  # pylint: disable=inconsistent-return-statements
-        if not (isinstance(self.dataset, TensorDataset) and self.num_workers == 0):
-            return super().__iter__()
+        if not self.custom_batching:
+            for item in super().__iter__():
+                yield item
+            return
 
         for indices in self.batch_sampler:
             if isinstance(indices, range):
