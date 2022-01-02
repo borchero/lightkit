@@ -45,7 +45,7 @@ class Configurable(Generic[C]):
         """
         path.mkdir(parents=False, exist_ok=True)
         with (path / "config.json").open("w+") as f:
-            json.dump(dataclasses.asdict(self.config), f)
+            json.dump(dataclasses.asdict(self.config), f, indent=4)
 
     @jit.unused
     def save(self: ConfigurableModule[C], path: PathType, compile_model: bool = False) -> None:

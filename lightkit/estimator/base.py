@@ -161,7 +161,7 @@ class BaseEstimator(ABC):
         """
         params = self.get_params()
         try:
-            data = json.dumps(params)
+            data = json.dumps(params, indent=4)
             with (path / "params.json").open("w+") as f:
                 f.write(data)
         except TypeError:
@@ -193,7 +193,7 @@ class BaseEstimator(ABC):
             attribute: getattr(self, attribute) for attribute in self.persistent_attributes
         }
         try:
-            data = json.dumps(attributes)
+            data = json.dumps(attributes, indent=4)
             with (path / "attributes.json").open("w+") as f:
                 f.write(data)
         except TypeError:
