@@ -34,18 +34,15 @@ class Configurable(Generic[C]):
         self.config = config
 
     @jit.unused
-    def save_config(self: ConfigurableModule[C], path: PathType) -> None:
+    def save_config(self: ConfigurableModule[C], path: Path) -> None:
         """
         Saves only the module's configuration to a file named ``config.json`` in the specified
-        directory.
+        directory. This method should not be called directly. It is called as part of :meth:`save`.
 
         Args:
             path: The directory to which to save the configuration and parameter files. The
                 directory may or may not exist but no parent directories are created.
         """
-        path = Path(path)
-        assert path.is_dir(), "Configuration can only be saved to a directory."
-
         path.mkdir(parents=False, exist_ok=True)
         with (path / "config.json").open("w+") as f:
             json.dump(dataclasses.asdict(self.config), f)
@@ -65,9 +62,9 @@ class Configurable(Generic[C]):
                 compiled model via :meth:`torch.jit.load` at a later point.
         """
         path = Path(path)
-        assert path.is_dir(), "Modules can only be saved to a directory."
+        assert not path.exists() or path.is_dir(), "Modules can only be saved to a directory."
 
-        path.mkdir(parents=False, exist_ok=True)
+        path.mkdir(parents=True, exist_ok=True)
 
         # Store the model's configuration and all parameters
         self.save_config(path)
@@ -81,10 +78,11 @@ class Configurable(Generic[C]):
                 jit.save(compiled_model, f)
 
     @classmethod
-    def load_config(cls: Type[M], path: PathType) -> M:
+    def load_config(cls: Type[M], path: Path) -> M:
         """
         Loads the module by reading the configuration. Parameters are initialized randomly as if
-        the module would be initialized from scratch.
+        the module would be initialized from scratch. This method should not be called directly.
+        It is called as part of :meth:`load`.
 
         Args:
             path: The directory which contains the ``config.json`` to load.
@@ -96,9 +94,6 @@ class Configurable(Generic[C]):
             This method must only be called if the module is initializable solely from a
             configuration.
         """
-        path = Path(path)
-        assert path.is_dir(), "Modules can only be loaded from a directory."
-
         config_cls = get_generic_type(cls, Configurable)
         with (path / "config.json").open("r") as f:
             config_args = json.load(f)

@@ -138,8 +138,9 @@ class BaseEstimator(ABC):
             uses :mod:`pickle` which is not necessarily backwards-compatible.
         """
         path = Path(path)
-        assert path.is_dir(), "Estimators can only be saved to a directory."
+        assert not path.exists() or path.is_dir(), "Estimators can only be saved to a directory."
 
+        path.mkdir(parents=True, exist_ok=True)
         self.save_parameters(path)
         try:
             self.save_attributes(path)
