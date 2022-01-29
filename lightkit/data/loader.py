@@ -1,4 +1,5 @@
 from typing import Any, Iterator, TypeVar
+from pytorch_lightning.overrides.distributed import IndexBatchSamplerWrapper
 from torch.utils.data import DataLoader as TorchDataLoader
 from torch.utils.data import Dataset, TensorDataset
 from torch.utils.data.sampler import SequentialSampler
@@ -31,6 +32,7 @@ class DataLoader(TorchDataLoader[T_co]):
             dataset: The dataset from which to load the data.
             kwargs: Keyword arguments passed to :meth:`torch.utils.data.DataLoader.__init__`.
         """
+        print(kwargs)
         if (
             not kwargs.get("shuffle", False)
             and "sampler" not in kwargs
@@ -49,12 +51,17 @@ class DataLoader(TorchDataLoader[T_co]):
             kwargs.setdefault("collate_fn", collate_tuple)
 
         super().__init__(dataset, **kwargs)  # type: ignore
+
         self.custom_batching = self.num_workers == 0 and (
             isinstance(self.batch_sampler, RangeBatchSampler)
             or (
                 self.batch_sampler is not None
                 and hasattr(self.batch_sampler, "sampler")
                 and isinstance(self.batch_sampler.sampler, RangeBatchSampler)
+            )
+            or (
+                isinstance(self.batch_sampler, IndexBatchSamplerWrapper)
+                and isinstance(self.batch_sampler._sampler, RangeBatchSampler)  # type: ignore
             )
         )
 
