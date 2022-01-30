@@ -4,7 +4,7 @@ LightKit provides simple utilities for working with PyTorch and PyTorch Lightnin
 it provides three simple features:
 
 - A data loader for tabular data that is orders of magnitude faster than PyTorch's builtin data
-  loader for medium-sized datasets and beyond.
+  loader for medium-sized datasets and larger ones.
 - A mixin for modules that allows to save not only weights, but also the configuration to the file
   system such that it is easier to retrieve trained models.
 - A typed base class for estimators that enables users to easily create estimators with PyTorch and
