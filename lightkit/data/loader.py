@@ -32,7 +32,6 @@ class DataLoader(TorchDataLoader[T_co]):
             dataset: The dataset from which to load the data.
             kwargs: Keyword arguments passed to :meth:`torch.utils.data.DataLoader.__init__`.
         """
-        print(kwargs)
         if (
             not kwargs.get("shuffle", False)
             and "sampler" not in kwargs
