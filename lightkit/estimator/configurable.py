@@ -16,15 +16,6 @@ class ConfigurableBaseEstimator(BaseEstimator, Generic[M]):
 
     _model: M
 
-    @property
-    def model_(self) -> M:
-        """
-        The fitted PyTorch module containing all estimated parameters.
-        """
-        if not hasattr(self, "_model"):
-            raise NotFittedError(f"`{self.__class__.__name__}` has not been fitted yet")
-        return self._model
-
     def save_attributes(self, path: Path) -> None:
         # First, store simple attributes
         super().save_attributes(path)
