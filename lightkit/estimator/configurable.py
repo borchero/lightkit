@@ -14,14 +14,14 @@ class ConfigurableBaseEstimator(BaseEstimator, Generic[M]):
     :class:`lightkit.nn.Configurable` mixin.
     """
 
-    _model: M
+    model_: M
 
     def save_attributes(self, path: Path) -> None:
         # First, store simple attributes
         super().save_attributes(path)
 
         # Then, store the model
-        self._model.save(path / "model")
+        self.model_.save(path / "model")
 
     def load_attributes(self, path: Path) -> None:
         # First, load simple attributes
@@ -29,7 +29,7 @@ class ConfigurableBaseEstimator(BaseEstimator, Generic[M]):
 
         # Then, load the model
         model_cls = get_generic_type(self.__class__, ConfigurableBaseEstimator)
-        self._model = model_cls.load(path / "model")  # type: ignore
+        self.model_ = model_cls.load(path / "model")  # type: ignore
 
     def __getattr__(self, key: str) -> Any:
         try:
