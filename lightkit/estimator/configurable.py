@@ -23,10 +23,6 @@ class ConfigurableBaseEstimator(BaseEstimator, Generic[M]):
             raise NotFittedError(f"`{self.__class__.__name__}` has not been fitted yet")
         return self._model
 
-    @model_.setter
-    def model_(self, model: M) -> None:
-        self._model = model
-
     def save_attributes(self, path: Path) -> None:
         # First, store simple attributes
         super().save_attributes(path)
