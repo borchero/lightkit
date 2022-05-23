@@ -14,6 +14,8 @@ class ConfigurableBaseEstimator(BaseEstimator, Generic[M]):
     :class:`lightkit.nn.Configurable` mixin.
     """
 
+    _model: M
+
     @property
     def model_(self) -> M:
         """

@@ -1,7 +1,11 @@
 name: Check Code Style
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   run-black:

@@ -1,3 +1,6 @@
 {
-  "makefile.extensionOutputFolder": "./.vscode"
+  "makefile.extensionOutputFolder": "./.vscode",
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": "file:///Users/borchero/github/lightkit/.github/workflows/deploy.yaml"
+  }
 }
