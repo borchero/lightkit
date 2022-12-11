@@ -20,5 +20,4 @@ def set_logging_level(level: int) -> None:
     _logger.setLevel(level)
 
 
-
 __all__ = ["BaseEstimator", "ConfigurableBaseEstimator"]
