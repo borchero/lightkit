@@ -14,22 +14,29 @@ version = "0.0.0"
 
 [tool.poetry.dependencies]
 numpy = "^1.20.0"
-python = ">=3.8,<3.10"
+python = ">=3.8,<3.11"
 pytorch-lightning = "^1.5.8"
-torch = "^1.8.0"
+torch = ">=1.8.0,<1.13.0"
 
-[tool.poetry.dev-dependencies]
-Sphinx = "^4.3.2"
-black = "^21.12b0"
+[tool.poetry.group.pre-commit.dependencies]
+black = "^22.12.0"
+docformatter = "^1.5.0"
 isort = "^5.10.1"
-pydata-sphinx-theme = "^0.7.2"
+mypy = "^0.991"
 pylint = "^2.12.2"
-pytest = "^6.2.5"
+pyupgrade = "^3.3.1"
+
+[tool.poetry.group.docs.dependencies]
+Sphinx = "^4.3.2"
+pydata-sphinx-theme = "^0.7.2"
 scanpydoc = "^0.7.3"
 sphinx-autodoc-typehints = "^1.12.0"
 sphinx-automodapi = "^0.13"
 sphinx-copybutton = "^0.4.0"
 sphinxcontrib-spelling = "^7.3.0"
+
+[tool.poetry.group.testing.dependencies]
+pytest = "^6.2.5"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
@@ -41,7 +48,6 @@ disable = [
   "duplicate-code",
   "missing-module-docstring",
   "invalid-name",
-  "no-self-use",
   "too-few-public-methods",
   "too-many-ancestors",
   "too-many-arguments",
@@ -55,16 +61,9 @@ generated-members = [
   "torch.*",
 ]
 
-[tool.pyright]
-reportIncompatibleMethodOverride = false
-reportPrivateImportUsage = false
-reportUnknownArgumentType = false
-reportUnknownMemberType = false
-reportUnknownVariableType = false
-typeCheckingMode = "strict"
-
 [tool.black]
 line-length = 99
+target-version = ["py38", "py39", "py310"]
 
 [tool.isort]
 force_alphabetical_sort_within_sections = true
@@ -74,6 +73,13 @@ line_length = 99
 lines_between_sections = 0
 profile = "black"
 skip_gitignore = true
+
+[tool.docformatter]
+make-summary-multi-line = true
+pre-summary-newline = true
+recursive = true
+wrap-descriptions = 99
+wrap-summaries = 99
 
 [tool.pytest.ini_options]
 filterwarnings = [
