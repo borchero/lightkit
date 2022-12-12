@@ -18,7 +18,7 @@ jobs:
       - name: Install poetry
         uses: snok/install-poetry@v1
       - name: Install project
-        run: poetry install --only main
+        run: poetry install --only main,pre-commit
       - name: Run pylint pre-commit
         uses: pre-commit/action@v3.0.0
         with:
@@ -40,6 +40,6 @@ jobs:
       - name: Install poetry
         uses: snok/install-poetry@v1
       - name: Install project
-        run: poetry install --only main
+        run: poetry install --only main,testing
       - name: Run Pytest
         run: poetry run pytest tests
