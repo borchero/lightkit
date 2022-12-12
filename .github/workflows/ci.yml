@@ -19,10 +19,8 @@ jobs:
         uses: snok/install-poetry@v1
       - name: Install project
         run: poetry install --only main,pre-commit
-      - name: Run pylint pre-commit
-        uses: pre-commit/action@v3.0.0
-        with:
-          extra_args: pylint --all-files
+      - name: Run pylint
+        run: pylint **/*.py
 
   unit-tests:
     name: Unit Tests - Python ${{ matrix.python-version }}
