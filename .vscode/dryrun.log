@@ -1,8 +1,0 @@
-make --dry-run --always-make --keep-going --print-directory
-make: Entering directory `/Users/borchero/github/lightkit'
-rm -rf build
-rm -rf docs/generated
-rm -rf docs/sites/generated
-sphinx-build -W -b html docs build
-make: Leaving directory `/Users/borchero/github/lightkit'
- 

@@ -2,23 +2,25 @@ from __future__ import annotations
 import dataclasses
 import json
 from pathlib import Path
-from typing import Any, Dict, Generic, Type
+from typing import Any, Generic
 import torch
 from torch import jit, nn
 from lightkit.utils import get_generic_type, PathType
-from ._protocols import C, ConfigurableModule, M
+from ._protocols import C_co, ConfigurableModule, M
 
 
-class Configurable(Generic[C]):
+class Configurable(Generic[C_co]):
     """
-    A mixin for any PyTorch module to extend it with storage capabilities. By passing a single
+    A mixin for any PyTorch module to extend it with storage capabilities.
+
+    By passing a single
     configuration object to the initializer, this mixin allows the module to be extended with
     :meth:`save` and :meth:`load` methods. These methods allow to (1) save the model along with
     its configuration (i.e. architecture) and (2) to load the model without instantiating an
     instance of the class.
     """
 
-    def __init__(self, config: C, *args: Any, **kwargs: Any):
+    def __init__(self, config: C_co, *args: Any, **kwargs: Any):
         """
         Args:
             config: The configuration of the architecture.
@@ -34,7 +36,7 @@ class Configurable(Generic[C]):
         self.config = config
 
     @jit.unused
-    def save_config(self: ConfigurableModule[C], path: Path) -> None:
+    def save_config(self: ConfigurableModule[C_co], path: Path) -> None:
         """
         Saves only the module's configuration to a file named ``config.json`` in the specified
         directory. This method should not be called directly. It is called as part of :meth:`save`.
@@ -48,7 +50,7 @@ class Configurable(Generic[C]):
             json.dump(dataclasses.asdict(self.config), f, indent=4)
 
     @jit.unused
-    def save(self: ConfigurableModule[C], path: PathType, compile_model: bool = False) -> None:
+    def save(self: ConfigurableModule[C_co], path: PathType, compile_model: bool = False) -> None:
         """
         Saves the module's configuration and parameters to files in the specified directory. It
         creates two files, namely ``config.json`` and ``parameters.pt`` which contain the
@@ -78,11 +80,11 @@ class Configurable(Generic[C]):
                 jit.save(compiled_model, f)
 
     @classmethod
-    def load_config(cls: Type[M], path: Path) -> M:
+    def load_config(cls: type[M], path: Path) -> M:
         """
         Loads the module by reading the configuration. Parameters are initialized randomly as if
-        the module would be initialized from scratch. This method should not be called directly.
-        It is called as part of :meth:`load`.
+        the module would be initialized from scratch. This method should not be called directly. It
+        is called as part of :meth:`load`.
 
         Args:
             path: The directory which contains the ``config.json`` to load.
@@ -102,7 +104,7 @@ class Configurable(Generic[C]):
         return cls(config)  # type: ignore
 
     @classmethod
-    def load(cls: Type[M], path: PathType) -> M:
+    def load(cls: type[M], path: PathType) -> M:
         """
         Loads the module's configurations and parameters from files in the specified directory at
         first. Then, it initializes the model with the stored configurations and loads the
@@ -152,7 +154,7 @@ class Configurable(Generic[C]):
         return cloned
 
 
-def _init_config(target: Type[Any], args: Dict[str, Any]) -> Any:
+def _init_config(target: type[Any], args: dict[str, Any]) -> Any:
     result = {}
     for key, val in args.items():
         arg_type = target.__dataclass_fields__[key].type  # type: ignore

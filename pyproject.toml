@@ -21,10 +21,13 @@ torch = ">=1.8.0,<1.13.0"
 [tool.poetry.group.dev.dependencies]
 Sphinx = "^4.3.2"
 black = "^22.12.0"
+docformatter = "^1.5.0"
 isort = "^5.10.1"
+mypy = "^0.991"
 pydata-sphinx-theme = "^0.7.2"
 pylint = "^2.12.2"
 pytest = "^6.2.5"
+pyupgrade = "^3.3.1"
 scanpydoc = "^0.7.3"
 sphinx-autodoc-typehints = "^1.12.0"
 sphinx-automodapi = "^0.13"
@@ -66,6 +69,13 @@ line_length = 99
 lines_between_sections = 0
 profile = "black"
 skip_gitignore = true
+
+[tool.docformatter]
+make-summary-multi-line = true
+pre-summary-newline = true
+recursive = true
+wrap-descriptions = 99
+wrap-summaries = 99
 
 [tool.pytest.ini_options]
 filterwarnings = [

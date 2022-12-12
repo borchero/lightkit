@@ -1,9 +1,0 @@
-{
-    "name": "lightkit",
-    "scripts": {
-        "lint": "pyright lightkit"
-    },
-    "devDependencies": {
-        "pyright": "^1.1.177"
-    }
-}
