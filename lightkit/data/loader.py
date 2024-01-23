@@ -1,5 +1,4 @@
 from typing import Any, Iterator, TypeVar
-from pytorch_lightning.overrides.distributed import IndexBatchSamplerWrapper
 from torch.utils.data import DataLoader as TorchDataLoader
 from torch.utils.data import Dataset, TensorDataset
 from torch.utils.data.sampler import SequentialSampler
@@ -59,7 +58,7 @@ class DataLoader(TorchDataLoader[T_co]):
                 and isinstance(self.batch_sampler.sampler, RangeBatchSampler)
             )
             or (
-                isinstance(self.batch_sampler, IndexBatchSamplerWrapper)
+                self.batch_sampler._sampler
                 and isinstance(self.batch_sampler._sampler, RangeBatchSampler)  # type: ignore
             )
         )
