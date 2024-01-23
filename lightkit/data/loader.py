@@ -9,11 +9,12 @@ T_co = TypeVar("T_co", covariant=True)
 
 
 class DataLoader(TorchDataLoader[T_co]):
-    """
-    Extension for PyTorch's builtin dataloader. This implementation allows to retrieve contiguous
-    indices from a :class:`~torch.utils.data.TensorDataset` orders of magnitude faster. The
-    data loader, thus, enables to implement traditional machine learning methods that exhibit a
-    speed similar to the implementations found in Scikit-learn.
+    """Extension for PyTorch's builtin dataloader. This implementation allows
+    to retrieve contiguous indices from a
+    :class:`~torch.utils.data.TensorDataset` orders of magnitude faster. The
+    data loader, thus, enables to implement traditional machine learning
+    methods that exhibit a speed similar to the implementations found in
+    Scikit-learn.
 
     Note:
         Retrieving contiguous indices is only possible when all of the following conditions apply:
@@ -65,8 +66,7 @@ class DataLoader(TorchDataLoader[T_co]):
 
     def __iter__(self) -> Iterator[Any]:  # pylint: disable=inconsistent-return-statements
         if not self.custom_batching:
-            for item in super().__iter__():
-                yield item
+            yield from super().__iter__()
             return
 
         for indices in self.batch_sampler:

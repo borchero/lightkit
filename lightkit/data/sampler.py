@@ -6,7 +6,9 @@ from torch.utils.data.sampler import SequentialSampler
 
 class RangeBatchSampler(Sampler[range]):
     """
-    Sampler providing batches of contiguous indices. This sampler can be used with
+    Sampler providing batches of contiguous indices.
+
+    This sampler can be used with
     :class:`lightkit.data.DataLoader` to provide significant speedups for tensor datasets.
     """
 

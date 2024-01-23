@@ -26,8 +26,8 @@ class TransformerMixin(Generic[D_contra, R_co]):
 
 class PredictorMixin(Generic[D_contra, R_co]):
     """
-    Mixin that provides a ``fit_predict`` method that chains fitting the estimator and
-    making predictions for the data it was fitted on.
+    Mixin that provides a ``fit_predict`` method that chains fitting the estimator and making
+    predictions for the data it was fitted on.
     """
 
     def fit_predict(self: Predictor[D_contra, R_co], data: D_contra) -> R_co:

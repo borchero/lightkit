@@ -4,13 +4,13 @@ import torch
 from torch import nn
 from lightkit.utils import PathType
 
-C = TypeVar("C", covariant=True)
+C_co = TypeVar("C_co", covariant=True)
 M = TypeVar("M", bound="ConfigurableModule")  # type: ignore
 
 
-class ConfigurableModule(Protocol, Generic[C]):
+class ConfigurableModule(Protocol, Generic[C_co]):
     @property
-    def config(self) -> C:
+    def config(self) -> C_co:
         ...
 
     @classmethod
