@@ -7,7 +7,7 @@ import pickle
 import warnings
 from abc import ABC
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar
+from typing import Any, TypeVar
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from lightkit.utils.path import PathType
@@ -23,10 +23,10 @@ class BaseEstimator(ABC):
     """
     Base estimator class that all estimators should inherit from. This base estimator does not
     enforce the implementation of any methods, but users should follow the Scikit-learn guide on
-    implementing estimators (which can be found
-    `here <https://scikit-learn.org/stable/developers/develop.html>`_). Some of the methods
-    mentioned in this guide are already implemented in this base estimator and work as expected if
-    the aspects listed below are followed.
+    implementing estimators (which can be found `here <https://scikit-
+    learn.org/stable/developers/develop.html>`_). Some of the methods mentioned in this guide are
+    already implemented in this base estimator and work as expected if the aspects listed below are
+    followed.
 
     In contrast to Scikit-learn's estimator, this estimator is strongly typed and integrates well
     with PyTorch Lightning. Most importantly, it provides the :meth:`trainer` method which returns
@@ -60,9 +60,9 @@ class BaseEstimator(ABC):
     def __init__(
         self,
         *,
-        default_params: Optional[Dict[str, Any]] = None,
-        user_params: Optional[Dict[str, Any]] = None,
-        overwrite_params: Optional[Dict[str, Any]] = None,
+        default_params: dict[str, Any] | None = None,
+        user_params: dict[str, Any] | None = None,
+        overwrite_params: dict[str, Any] | None = None,
     ):
         """
         Args:
@@ -113,19 +113,21 @@ class BaseEstimator(ABC):
     # PERSISTENCE
 
     @property
-    def persistent_attributes(self) -> List[str]:
+    def persistent_attributes(self) -> list[str]:
         """
-        Returns the list of fitted attributes that ought to be saved and loaded. By default, this
-        encompasses all annotations.
+        Returns the list of fitted attributes that ought to be saved and loaded.
+
+        By default, this encompasses all annotations.
         """
         return list(self.__annotations__.keys())
 
     def save(self, path: PathType) -> None:
-        """
-        Saves the estimator to the provided directory. It saves a file named ``estimator.pickle``
-        for the configuration of the estimator and additional files for the fitted model (if
-        applicable). For more information on the files saved for the fitted model or for more
-        customization, look at :meth:`get_params` and :meth:`lightkit.nn.Configurable.save`.
+        """Saves the estimator to the provided directory. It saves a file named
+        ``estimator.pickle`` for the configuration of the estimator and
+        additional files for the fitted model (if applicable). For more
+        information on the files saved for the fitted model or for more
+        customization, look at :meth:`get_params` and
+        :meth:`lightkit.nn.Configurable.save`.
 
         Args:
             path: The directory to which all files should be saved.
@@ -205,7 +207,7 @@ class BaseEstimator(ABC):
                 pickle.dump(attributes, f)
 
     @classmethod
-    def load(cls: Type[E], path: PathType) -> E:
+    def load(cls: type[E], path: PathType) -> E:
         """
         Loads the estimator and (if available) the fitted model. This method should only be
         expected to work to load an estimator that has previously been saved via :meth:`save`.
@@ -228,7 +230,7 @@ class BaseEstimator(ABC):
         return estimator
 
     @classmethod
-    def load_parameters(cls: Type[E], path: Path) -> E:
+    def load_parameters(cls: type[E], path: Path) -> E:
         """
         Initializes this estimator by loading its parameters. If subclasses overwrite
         :meth:`save_parameters`, this method should also be overwritten.
@@ -276,7 +278,7 @@ class BaseEstimator(ABC):
     # ---------------------------------------------------------------------------------------------
     # SKLEARN INTERFACE
 
-    def get_params(self, deep: bool = True) -> Dict[str, Any]:  # pylint: disable=unused-argument
+    def get_params(self, deep: bool = True) -> dict[str, Any]:  # pylint: disable=unused-argument
         """
         Returns the estimator's parameters as passed to the initializer.
 
@@ -290,7 +292,7 @@ class BaseEstimator(ABC):
         parameters = [p.name for p in signature.parameters.values() if p.name != "self"]
         return {p: getattr(self, p) for p in parameters}
 
-    def set_params(self: E, values: Dict[str, Any]) -> E:
+    def set_params(self: E, values: dict[str, Any]) -> E:
         """
         Sets the provided values on the estimator. The estimator is returned as well, but the
         estimator on which this function is called is also modified.
@@ -336,9 +338,10 @@ class BaseEstimator(ABC):
     # PRIVATE
 
     def _num_batches_per_epoch(self, loader: DataLoader[Any]) -> int:
-        """
-        Returns the number of batches that are run for the given data loader across all processes
-        when using the trainer provided by the :meth:`trainer` method. If ``n`` processes run
+        """Returns the number of batches that are run for the given data loader
+        across all processes when using the trainer provided by the
+        :meth:`trainer` method. If ``n`` processes run.
+
         ``k`` batches each, this method returns ``k * n``.
         """
         trainer = self.trainer()
